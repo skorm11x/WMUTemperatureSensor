@@ -1,0 +1,4 @@
+#Thu Aug 01 15:14:42 EDT 2019
+base.0=/home/kgsh/Desktop/Projects/mobile-applications/WMUTemperatureSensor/android/app/build/intermediates/transforms/dexMerger/debug/0
+path.0=classes.dex
+renamed.0=classes.dex
