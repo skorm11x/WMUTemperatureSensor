@@ -1,11 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow
- */
-
 import React, { Fragment, Component } from "react";
 import {
   SafeAreaView,
@@ -13,35 +5,26 @@ import {
   ScrollView,
   View,
   Text,
-  StatusBar,
-  Button,
-  List,
-  FlatList,
-  PermissionsAndroid
-} from 'react-native';
-
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
+  TouchableOpacity,
+  PermissionsAndroid,
+  Image
+} from "react-native";
 
 import Modal from "react-native-modal";
-import RNRestart from 'react-native-restart';
+import RNRestart from "react-native-restart";
+import { LineChart } from "react-native-svg-charts";
 
 import { BleManager, ScanMode } from "react-native-ble-plx";
-import { BluetoothStatus } from 'react-native-bluetooth-status';
-import { getDecFrom64 } from './assets/utility/DecFrom64';
+import { BluetoothStatus } from "react-native-bluetooth-status";
+import { getDecFrom64 } from "./assets/utility/DecFrom64";
 
-let DegreeComponent = require('./components/DegreeComponent');
+let DegreeComponent = require("./components/DegreeComponent");
 
 const adcCelciusScalar = 0.0078125;
 const tiServiceID = "0000fff0-0000-1000-8000-00805f9b34fb";
+let ScanOptions = { scanMode: ScanMode.LowLatency };
 
-let ScanOptions = (ScanMode: ScanMode.LowLatency);
+//Create graph component to be added into Main Component
 
 export default class Main extends Component {
   constructor() {
@@ -49,15 +32,15 @@ export default class Main extends Component {
     this.state = {
       permissionState: false,
       bluetoothState: "",
-      adcValue: null,
-      decimalVal: null,
-      celciusVal: null,
-      farenheitVal: null,
+      adcValue: 0,
+      decimalVal: 0,
+      celciusVal: 0,
+      farenheitVal: 0,
       device: null
     };
     this.manager = new BleManager();
     this.requestPermissions();
-  };
+  }
 
   async requestPermissions() {
     try {
@@ -70,7 +53,7 @@ export default class Main extends Component {
             "coarse location in order to use Bluetooth Low Energy. " +
             "This app will not work without this permission.",
           buttonNegative: "Cancel",
-          buttonPositive: "OK",
+          buttonPositive: "OK"
           // eslint-disable-next-line no-undef
         }
       );
@@ -85,11 +68,11 @@ export default class Main extends Component {
       //     buttonPositive: "OK",
       //   }
       // );
-  
+
       if (coarseGrant === PermissionsAndroid.RESULTS.GRANTED) {
         this.permissionState = true;
         console.log("BLE coarse location permission granted.");
-      }else{
+      } else {
         console.log("BLE coarse location permissions denied.");
       }
     } catch (error) {
@@ -105,8 +88,7 @@ export default class Main extends Component {
         this.scanObserverValues();
         //subscription.remove();
       }
-      if(state === "PoweredOff") {
-
+      if (state === "PoweredOff") {
       }
       //this.scanObserverValues();
     }, true);
@@ -114,19 +96,21 @@ export default class Main extends Component {
 
   async checkInitialBluetoothState() {
     const isEnabled = await BluetoothStatus.state();
-    this.setState({ bluetoothState: (isEnabled) ? 'On' : 'Off'});
+    this.setState({ bluetoothState: isEnabled ? "On" : "Off" });
   }
 
   async toggleBluetooth() {
     try {
       const isEnabled = await BluetoothStatus.state();
       BluetoothStatus.enable(!isEnabled);
-      this.setState({ bluetoothState: (isEnabled) ? 'Off' : 'On'});
-    } catch (error) { console.error(error); }
+      this.setState({ bluetoothState: isEnabled ? "Off" : "On" });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
-  scanObserverValues(){
-    //start device scan 
+  scanObserverValues() {
+    //start device scan
     //@params = (UUIDs, options, listener)
     //listener function (error, device) obtain device as second param
 
@@ -155,7 +139,7 @@ export default class Main extends Component {
           this.setState({ device: device });
           console.log(Date.now());
 
-          console.log(device.id); //MAC
+          console.log(device.id); //look at MAC
           let rawData = device.manufacturerData;
           //get hex (ascii) values for each character
           //tx packet always only care about first 3 chars ignore = on x64
@@ -163,16 +147,16 @@ export default class Main extends Component {
           let decTwo = getDecFrom64(device.manufacturerData.charCodeAt(1));
           let decThree = getDecFrom64(device.manufacturerData.charCodeAt(2));
 
-          let decVal = [(decOne*262144)+(decTwo*4096)+(decThree*64)]/256;
+          let decVal = [decOne * 262144 + decTwo * 4096 + decThree * 64] / 256;
           //let decVal = [819456/256];
 
           /*where 3200 = 25.00 deg celcius
           resolution is 00.0078125 per decimal increase but for display purposes
           we will round up or down to only display up to 100th degree accuracy
           */
-          let celValRaw = (decVal*adcCelciusScalar);
+          let celValRaw = decVal * adcCelciusScalar;
           let celVal = celValRaw.toFixed(2);
-          let farValRaw = (celVal*1.8000 +32);
+          let farValRaw = celVal * 1.8 + 32;
           let farVal = farValRaw.toFixed(2);
 
           this.setState({ adcValue: rawData });
@@ -190,7 +174,13 @@ export default class Main extends Component {
   //TODO: seperate render part so can render multiple devices
   render() {
     //We can pass the entiere object huzzah! => access field members directly in UI
-    const {device, adcValue, celciusVal, farenheitVal, permissionState } = this.state;
+    const {
+      device,
+      adcValue,
+      celciusVal,
+      farenheitVal,
+      permissionState
+    } = this.state;
     if (this.permissionState != null) {
       return (
         <Fragment>
@@ -198,22 +188,42 @@ export default class Main extends Component {
             contentInsetAdjustmentBehavior="automatic"
             style={styles.scrollView}
           >
+            <View style={styles.logos}>
+              <Image
+                source={require("./assets/resources/images/Western_Michigan_University_wordmark.svg__300x100.png")}
+                style={styles.image}
+              />
+              <Image
+                source={require("./assets/resources/images/SafeSense_Technologies_Logo_300x100.jpg")}
+                style={styles.image}
+              />
+            </View>
             <View style={styles.body}>
               <View style={styles.headerRow}>
                 <View style={styles.rowItemBold}>
-                  <Text style={{fontWeight: "700"}}>Device Name</Text>
+                  <Text style={{ fontWeight: "700" }}>Device Name</Text>
                 </View>
                 <View style={styles.rowItemBold}>
                   <DegreeComponent
-                    style={{ width: 6, height: 6, borderRadius: 3, marginTop: 0 }}
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: 3,
+                      marginTop: 0
+                    }}
                   />
-                  <Text style={{fontWeight: "700"}}>C</Text>
+                  <Text style={{ fontWeight: "700" }}>C</Text>
                 </View>
                 <View style={styles.rowItemBold}>
                   <DegreeComponent
-                    style={{ width: 6, height: 6, borderRadius: 3, marginTop: 0 }}
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: 3,
+                      marginTop: 0
+                    }}
                   />
-                  <Text style={{fontWeight: "700"}}>F</Text>
+                  <Text style={{ fontWeight: "700" }}>F</Text>
                 </View>
               </View>
               <View style={styles.row}>
@@ -223,90 +233,103 @@ export default class Main extends Component {
                 <View style={styles.rowItem}>
                   <Text>{celciusVal}</Text>
                   <DegreeComponent
-                    style={{ width: 6, height: 6, borderRadius: 3, marginTop: 0 }}
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: 3,
+                      marginTop: 0
+                    }}
                   />
                   <Text>C</Text>
                 </View>
                 <View style={styles.rowItem}>
                   <Text>{farenheitVal}</Text>
                   <DegreeComponent
-                    style={{ width: 6, height: 6, borderRadius: 3, marginTop: 0 }}
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: 3,
+                      marginTop: 0
+                    }}
                   />
                   <Text>F</Text>
                 </View>
               </View>
+              {/* <View>
+              <Text>YOLO</Text>
+                <LineChart
+                  style={{
+                    flex: 1,
+                    alignSelf: "stretch",
+                    borderWidth: 1,
+                    borderColor: "rgba(255,255,255,0.5)",
+                    margin: 10
+                  }}
+                  data={ adcValue }
+                  svg={{
+                    strokeWidth: 2,
+                    stroke: "#000000"
+                  }}
+                  animate
+                />
+              </View> */}
             </View>
           </ScrollView>
         </Fragment>
       );
     }
     return (
-      //No saved MAC detected, allow user to select from list of advertising devices 
+      //No saved MAC detected, allow user to select from list of advertising devices
       //which data to display etc.
       <Fragment>
-      <Text>Loading please wait...</Text>
-        {/* <StatusBar barStyle="dark-content" />
-        <SafeAreaView>
-          <ScrollView
-            contentInsetAdjustmentBehavior="automatic"
-            style={styles.scrollView}
-          >
-            >
-            <Header />
-            {global.HermesInternal == null ? null : (
-              <View style={styles.engine}>
-                <Text style={styles.footer}>Engine: Hermes</Text>
-              </View>
-            )}
-            <View style={styles.body}>
-              <View style={styles.sectionContainer}>
-                <Text style={styles.sectionTitle}>Step One</Text>
-                <Text style={styles.sectionDescription}>
-                  Edit <Text style={styles.highlight}>App.js</Text> to change
-                  screen and then come back to see your edits.
-                </Text>
-              </View>
-              <View style={styles.sectionContainer}>
-                <Text style={styles.sectionTitle}>See Your Changes</Text>
-                <Text style={styles.sectionDescription}>
-                  <ReloadInstructions />
-                </Text>
-              </View>
-              <View style={styles.sectionContainer}>
-                <Text style={styles.sectionTitle}>Debug</Text>
-                <Text style={styles.sectionDescription}>
-                  <DebugInstructions />
-                </Text>
-              </View>
-              <View style={styles.sectionContainer}>
-                <Text style={styles.sectionTitle}>Learn More</Text>
-                <Text style={styles.sectionDescription}>
-                  Read the docs to discover what to do next:
-                </Text>
-              </View>
-              <LearnMoreLinks />
-            </View>
-          </ScrollView>
-        </SafeAreaView> */}
+        <ScrollView
+          contentInsetAdjustmentBehavior="automatic"
+          style={styles.scrollView}
+        >
+          <View style={styles.logos}>
+            <Image
+              source={require("./assets/resources/images/Western_Michigan_University_wordmark.svg__300x100.png")}
+            />
+            <Image
+              source={require("./assets/resources/images/SafeSense_Technologies_Logo_300x100.jpg")}
+            />
+          </View>
+          <Text>Loading please wait...</Text>
+        </ScrollView>
       </Fragment>
     );
   }
 }
 
-
 const styles = StyleSheet.create({
   scrollView: {
-    backgroundColor: Colors.lighter,
+    backgroundColor: "#FFFFFF"
   },
   // engine: {
   //   position: 'absolute',
   //   right: 0,
   // },
   body: {
-    flex : 1,
-    backgroundColor: Colors.white,
-    alignItems: 'flex-start',
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    alignItems: "flex-start",
     flexDirection: "column"
+  },
+  logos: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    alignItems: "flex-start",
+    flexDirection: "row",
+    paddingTop: 10,
+    paddingBottom: 30,
+    borderBottomWidth: 1,
+    borderBottomColor: "#000000"
+  },
+  image: {
+    flex: 1,
+    width: 50,
+    height: 50,
+    resizeMode: "contain"
   },
   // sectionContainer: {
   //   marginTop: 32,
@@ -324,7 +347,7 @@ const styles = StyleSheet.create({
   //   color: Colors.dark,
   // },
   highlight: {
-    fontWeight: '700',
+    fontWeight: "700"
   },
   // footer: {
   //   color: Colors.dark,
@@ -339,32 +362,31 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     paddingBottom: 10,
     paddingRight: 15,
-    paddingLeft:15,
+    paddingLeft: 15,
     marginBottom: 5,
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: "space-between",
+    alignItems: "center"
   },
   row: {
     flexDirection: "row",
     marginVertical: 10,
     paddingBottom: 10,
     paddingRight: 15,
-    paddingLeft:15,
+    paddingLeft: 15,
     marginBottom: 5,
-    justifyContent: 'space-between',
-    alignItems: 'center'
+    justifyContent: "space-between",
+    alignItems: "center"
   },
   rowItem: {
     padding: 1,
-    width: '33%',
-    flexDirection: 'row'
+    width: "33%",
+    flexDirection: "row"
   },
   rowItemBold: {
     padding: 1,
     width: "33%",
-    flexDirection: 'row'
+    flexDirection: "row"
   }
-
 });
 
 // export default Main;

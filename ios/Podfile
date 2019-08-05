@@ -30,6 +30,8 @@ target 'WMUTemperatureSensor' do
 
   pod 'react-native-bluetooth-status', :path => '../node_modules/react-native-bluetooth-status'
 
+  pod 'RNSVG', :path => '../node_modules/react-native-svg'
+
   target 'WMUTemperatureSensorTests' do
     inherit! :search_paths
     # Pods for testing

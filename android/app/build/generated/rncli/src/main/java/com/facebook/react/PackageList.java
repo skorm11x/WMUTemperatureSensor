@@ -19,6 +19,8 @@ import com.polidea.reactnativeble.BlePackage;
 import com.solinor.bluetoothstatus.RNBluetoothManagerPackage;
 // react-native-restart
 import com.avishayil.rnrestart.ReactNativeRestartPackage;
+// react-native-svg
+import com.horcrux.svg.SvgPackage;
 
 public class PackageList {
   private Application application;
@@ -54,7 +56,8 @@ public class PackageList {
       new MainReactPackage(),
       new BlePackage(),
       new RNBluetoothManagerPackage(),
-      new ReactNativeRestartPackage()
+      new ReactNativeRestartPackage(),
+      new SvgPackage()
     ));
   }
 }
