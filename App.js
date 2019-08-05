@@ -32,10 +32,10 @@ export default class Main extends Component {
     this.state = {
       permissionState: false,
       bluetoothState: "",
-      adcValue: 0,
-      decimalVal: 0,
-      celciusVal: 0,
-      farenheitVal: 0,
+      adcValue: null,
+      decimalVal: null,
+      celciusVal: null,
+      farenheitVal: null,
       device: null
     };
     this.manager = new BleManager();
@@ -70,7 +70,7 @@ export default class Main extends Component {
       // );
 
       if (coarseGrant === PermissionsAndroid.RESULTS.GRANTED) {
-        this.permissionState = true;
+        this.state.permissionState = true;
         console.log("BLE coarse location permission granted.");
       } else {
         console.log("BLE coarse location permissions denied.");
@@ -81,7 +81,10 @@ export default class Main extends Component {
   }
 
   componentDidMount() {
+    //console.log("mounted!");
+    //console.log(this.state.permissionState);
     this.manager.enable();
+    console.log("manager enabled");
     //requestPermissions();
     const subscription = this.manager.onStateChange(state => {
       if (state === "PoweredOn") {
@@ -136,11 +139,12 @@ export default class Main extends Component {
         etc.
       */
         try {
-          this.setState({ device: device });
+          this.setState({ deviceName: device.name });
           console.log(Date.now());
 
           console.log(device.id); //look at MAC
           let rawData = device.manufacturerData;
+          console.log(rawData);
           //get hex (ascii) values for each character
           //tx packet always only care about first 3 chars ignore = on x64
           let decOne = getDecFrom64(device.manufacturerData.charCodeAt(0));
@@ -149,6 +153,7 @@ export default class Main extends Component {
 
           let decVal = [decOne * 262144 + decTwo * 4096 + decThree * 64] / 256;
           //let decVal = [819456/256];
+          console.log(decVal);
 
           /*where 3200 = 25.00 deg celcius
           resolution is 00.0078125 per decimal increase but for display purposes
@@ -173,15 +178,14 @@ export default class Main extends Component {
 
   //TODO: seperate render part so can render multiple devices
   render() {
-    //We can pass the entiere object huzzah! => access field members directly in UI
     const {
-      device,
+      deviceName,
       adcValue,
       celciusVal,
       farenheitVal,
       permissionState
     } = this.state;
-    if (this.permissionState != null) {
+    if (adcValue != null) {
       return (
         <Fragment>
           <ScrollView
@@ -228,7 +232,7 @@ export default class Main extends Component {
               </View>
               <View style={styles.row}>
                 <View style={styles.rowItem}>
-                  <Text>{device.name}</Text>
+                  <Text>{deviceName}</Text>
                 </View>
                 <View style={styles.rowItem}>
                   <Text>{celciusVal}</Text>
@@ -289,12 +293,14 @@ export default class Main extends Component {
           <View style={styles.logos}>
             <Image
               source={require("./assets/resources/images/Western_Michigan_University_wordmark.svg__300x100.png")}
+              style={styles.image}
             />
             <Image
               source={require("./assets/resources/images/SafeSense_Technologies_Logo_300x100.jpg")}
+              style={styles.image}
             />
           </View>
-          <Text>Loading please wait...</Text>
+          <Text>Searching for devices...</Text>
         </ScrollView>
       </Fragment>
     );
