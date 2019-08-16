@@ -12,39 +12,56 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
-import { Footer, FooterTab} from 'native-base';
-
-import Modal from 'react-native-modal';
-import RNRestart from 'react-native-restart';
+import { Footer, FooterTab } from 'native-base';
 import { LineChart } from 'react-native-svg-charts';
 
-
-import { VictoryBar, VictoryTheme, VictoryChart, VictoryLine } from 'victory-native';
+import {
+  VictoryBar,
+  VictoryTheme,
+  VictoryChart,
+  VictoryLine,
+} from 'victory-native';
 
 import { BleManager, ScanMode } from 'react-native-ble-plx';
-import { BluetoothStatus } from 'react-native-bluetooth-status';
 import { getDecFrom64 } from './assets/utility/DecFrom64';
+import { objectTypeSpreadProperty } from '@babel/types';
 
 let DegreeComponent = require('./components/DegreeComponent');
 
 const adcCelciusScalar = 0.0078125;
-const tiServiceID = '0000fff0-0000-1000-8000-00805f9b34fb';
+const safeSenseServiceID = '0000fff6-0000-1000-8000-00805f9b34fb';
 let ScanOptions = { scanMode: ScanMode.LowLatency };
 
+let deviceList = new Map(); //holder for all device
+
 //Create graph component to be added into Main Component
+
+class BLEDevice extends Component {
+  constructor(device) {
+    this.state = {
+      name: device.name
+    };
+  }
+}
 
 export default class Main extends Component {
   constructor() {
     super();
+    //change state variable to seperate scanned device result and device features
     this.state = {
       permissionState: false,
       bluetoothState: '',
-      adcValue: null,
-      decimalVal: null,
-      celciusVal: null,
-      farenheitVal: null,
-      device: null,
-      orientation: ''
+      orientation: '',
+      deviceLIST: [],
+      device: {
+        name: null,
+        id: null,
+        rssi: null,
+        adcValue: null,
+        decimalVal: null,
+        celciusVal: null,
+        farenheitVal: null
+      },
     };
     this.manager = new BleManager();
     this.requestPermissions();
@@ -66,22 +83,11 @@ export default class Main extends Component {
         }
       );
 
-      // const bleGrant = await PermissionsAndroid.request(
-      //   PermissionsAndroid.PERMISSIONS.BLUETOOTH,
-      //   {
-      //     title: "Bluetooth Low Energy Permissions",
-      //     message:
-      //       "WMUTemperatureBeacon needs Bluetooth permissions",
-      //     buttonNegative: "Cancel",
-      //     buttonPositive: "OK",
-      //   }
-      // );
-
       if (coarseGrant === PermissionsAndroid.RESULTS.GRANTED) {
         this.state.permissionState = true;
-        console.log('BLE coarse location permission granted.');
+        //console.log("BLE coarse location permission granted.");
       } else {
-        console.log('BLE coarse location permissions denied.');
+        //console.log("BLE coarse location permissions denied.");
       }
     } catch (error) {
       console.warn(error);
@@ -89,90 +95,54 @@ export default class Main extends Component {
   }
 
   componentDidMount() {
-    //console.log("mounted!");
-    //console.log(this.state.permissionState);
     this.getOrientation();
     this.manager.enable();
-    console.log('manager enabled');
-    Dimensions.addEventListener( 'change', () =>
-    {
+    Dimensions.addEventListener('change', () => {
       this.getOrientation();
     });
     //requestPermissions();
     const subscription = this.manager.onStateChange(state => {
       if (state === 'PoweredOn') {
         this.scanObserverValues();
-        //subscription.remove();
       }
       if (state === 'PoweredOff') {
       }
-      //this.scanObserverValues();
     }, true);
   }
 
-  async checkInitialBluetoothState() {
-    const isEnabled = await BluetoothStatus.state();
-    this.setState({ bluetoothState: isEnabled ? 'On' : 'Off' });
-  }
-
-  async toggleBluetooth() {
-    try {
-      const isEnabled = await BluetoothStatus.state();
-      BluetoothStatus.enable(!isEnabled);
-      this.setState({ bluetoothState: isEnabled ? 'Off' : 'On' });
-    } catch (error) {
-      console.error(error);
+  getOrientation = () => {
+    if (this.refs.rootView) {
+      if (Dimensions.get('window').width < Dimensions.get('window').height) {
+        this.setState({ orientation: 'portrait' });
+      } else {
+        this.setState({ orientation: 'landscape' });
+      }
     }
-  }
+  };
 
-  getOrientation = () =>
-  {
-    if( this.refs.rootView )
-    {
-        if( Dimensions.get('window').width < Dimensions.get('window').height )
-        {
-          this.setState({ orientation: 'portrait' });
-        }
-        else
-        {
-          this.setState({ orientation: 'landscape' });
-        }
-    }
+  logMapElements(value, key, map) {
+    console.log(key + value.name);
   }
 
   scanObserverValues() {
-    //start device scan
-    //@params = (UUIDs, options, listener)
-    //listener function (error, device) obtain device as second param
-
-    //pass in options to increase scan rate/ lower latency = increased device power
     this.manager.startDeviceScan(
-      [tiServiceID],
+      [safeSenseServiceID],
       ScanOptions,
+      //This function is called for EVERY scanned device!
       (error, device) => {
         if (error) {
           console.log(error.message);
           return;
         }
-        /*
-        SW filter implementation: unique field chosen = MAC
 
-        process: initially no MAC is stored/ configured and no data will show up..
-        User clicks some button to scan and reveal all devices in vicinity that are 
-        broadcast and select (via checkbox) which MAC's we want to save for display
-        of values (manufacture data)
+        //TODO: update program so we can handle multiple device instances/ graph multiple etc.
 
-        **Also allow feature that allows user to display all raw tx data or
-        potentially pick a different field to track (manufacture data, characterisitcs)
-        etc.
-      */
         try {
-          this.setState({ deviceName: device.name });
-          console.log(Date.now());
+          //add device to the device map with id as key, device object as value
 
-          console.log(device.id); //look at MAC
+          //console.log(device.id); //look at MAC
           let rawData = device.manufacturerData;
-          console.log(rawData);
+          //console.log(rawData);
           //get hex (ascii) values for each character
           //tx packet always only care about first 3 chars ignore = on x64
           let decOne = getDecFrom64(device.manufacturerData.charCodeAt(0));
@@ -181,20 +151,55 @@ export default class Main extends Component {
 
           let decVal = [decOne * 262144 + decTwo * 4096 + decThree * 64] / 256;
           //let decVal = [819456/256];
-          console.log(decVal);
+          //console.log(decVal);
 
           /*where 3200 = 25.00 deg celcius
           resolution is 00.0078125 per decimal increase but for display purposes
           we will round up or down to only display up to 100th degree accuracy
           */
+          //yolo
           let celValRaw = decVal * adcCelciusScalar;
           let celVal = celValRaw.toFixed(2);
           let farValRaw = celVal * 1.8 + 32;
           let farVal = farValRaw.toFixed(2);
 
-          this.setState({ adcValue: rawData });
-          this.setState({ celciusVal: celVal });
-          this.setState({ farenheitVal: farVal });
+          if (!deviceList.has(device.id)) {
+            deviceList.set(device.id, device);
+            // this.state.deviceLIST.concat([
+            //   { name: device.name, id: device.id },
+            // ]);
+            this.setState({
+              deviceLIST: this.state.deviceLIST.concat([
+                {
+                  name: device.name,
+                  id: device.id,
+                  rssi: device.rssi,
+                  adcValue: rawData,
+                  celciusVal: celVal,
+                  farenheitVal: farVal,
+                }
+              ]),
+            });
+          }
+
+          //console.log(deviceList.size);
+          deviceList.forEach(this.logMapElements);
+          //console.log(Date.now());
+
+          this.setState({
+            device: {
+              name: device.name,
+              id: device.id,
+              rssi: device.rssi,
+              adcValue: rawData,
+              celciusVal: celVal,
+              farenheitVal: farVal,
+            }
+          });
+
+          // this.setState({ adcValue: rawData });
+          // this.setState({ celciusVal: celVal });
+          // this.setState({ farenheitVal: farVal });
           //take the base x64 string and convert into decimal then far/cel
           // eslint-disable-next-line no-catch-shadow
         } catch (error) {
@@ -207,31 +212,32 @@ export default class Main extends Component {
   //TODO: seperate render part so can render multiple devices
   render() {
     const {
-      deviceName,
-      adcValue,
-      celciusVal,
-      farenheitVal,
-      permissionState,
+      device,
+      // adcValue,
+      // celciusVal,
+      // farenheitVal,
+      permissionState
     } = this.state;
 
-     let chartHeight;
+    let deviceList = this.state.deviceLIST.map((device, i) => {
+      return (
+        // <Text>
+        //   {device.name} , {device.celciusVal}
+        // </Text>
+        <Text key={i}>{device.celciusVal}</Text>
+      );
+    });
 
-     if(this.state.orientation === 'portrait') {
-      chartHeight = Dimensions.get('window').height/2;
-     }
-     if(this.state.orientation === 'landscape') {
+    let chartHeight;
+
+    if (this.state.orientation === 'portrait') {
+      chartHeight = Dimensions.get('window').height / 2;
+    }
+    if (this.state.orientation === 'landscape') {
       chartHeight = 300;
-     }
+    }
 
-
-    // if (Dimensions.get("window").width < Dimensions.get("window").height) {
-    //   chartHeight = Dimensions.get('window').height/2;
-    // }
-    // if(Dimensions.get('window').width > Dimensions.get('window').height) {
-    //   chartHeight = 300;
-    // }
-
-    if (adcValue != null) {
+    if (device.adcValue != null) {
       return (
         <Fragment>
           <ScrollView
@@ -276,12 +282,13 @@ export default class Main extends Component {
                   <Text style={{ fontWeight: '700' }}>F</Text>
                 </View>
               </View>
+              <View>{deviceList}</View>
               <View style={styles.row}>
                 <View style={styles.rowItem}>
-                  <Text>{deviceName}</Text>
+                  <Text>{device.name}</Text>
                 </View>
                 <View style={styles.rowItem}>
-                  <Text>{celciusVal}</Text>
+                  <Text>{device.celciusVal}</Text>
                   <DegreeComponent
                     style={{
                       width: 6,
@@ -293,7 +300,7 @@ export default class Main extends Component {
                   <Text>C</Text>
                 </View>
                 <View style={styles.rowItem}>
-                  <Text>{farenheitVal}</Text>
+                  <Text>{device.farenheitVal}</Text>
                   <DegreeComponent
                     style={{
                       width: 6,
@@ -306,22 +313,23 @@ export default class Main extends Component {
                 </View>
               </View>
               <View style={styles.chartContainer}>
-              <VictoryChart
-                height={chartHeight}
-                width={Dimensions.get('window').width*0.9}
-                domain={{ y: [10.00, 40.00] }}
-                theme={VictoryTheme.material}>
-                <VictoryBar
-                  barRatio={1.0}
-                  barWidth={150}
+                <VictoryChart
+                  height={chartHeight}
+                  width={Dimensions.get('window').width * 0.9}
+                  domain={{ y: [10.0, 40.0] }}
+                  theme={VictoryTheme.material}
+                >
+                  <VictoryBar
+                    barRatio={1.0}
+                    barWidth={150}
                     style={{ data: { fill: '#4FC1E9' } }}
-                  alignment="middle"
-                  data={[
-                    {
-                      x: 'Celcius',
-                      y: Number(celciusVal)
+                    alignment="middle"
+                    data={[
+                      {
+                        x: 'Celcius',
+                        y: Number(device.celciusVal)
                       }
-                  ]}
+                    ]}
                     labels={d => `${d.y}°C`}
                   />
                 </VictoryChart>
@@ -388,8 +396,14 @@ export default class Main extends Component {
             />
           </View>
           <View style={styles.body}>
-            <Text style={{alignSelf: 'center'}}>Searching for devices...</Text>
-            <ActivityIndicator size="large" color="#0000ff" style={{alignSelf: "center", marginTop: 50}}/>
+            <Text style={{ alignSelf: 'center' }}>
+              Searching for devices...
+            </Text>
+            <ActivityIndicator
+              size="large"
+              color="#0000ff"
+              style={{ alignSelf: 'center', marginTop: 50 }}
+            />
           </View>
           <Footer>
             <FooterTab style={styles.footer}>
@@ -454,7 +468,7 @@ const styles = StyleSheet.create({
   celcius: {
     backgroundColor: '#F55443'
   },
-  chartContainer : {
+  chartContainer: {
     flexDirection: 'column',
     marginTop: 6,
     alignItems: 'center'
@@ -525,13 +539,13 @@ const styles = StyleSheet.create({
     width: '33%',
     flexDirection: 'row'
   },
-  footerTab : {
+  footerTab: {
     height: 50,
     width: '100%',
     position: 'absolute',
     bottom: 0
   },
-  footer : {
+  footer: {
     backgroundColor: '#ACF7F7',
     height: 50,
     width: '100%',
