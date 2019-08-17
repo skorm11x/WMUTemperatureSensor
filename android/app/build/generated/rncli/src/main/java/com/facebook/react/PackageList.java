@@ -13,10 +13,16 @@ import java.util.ArrayList;
 import com.wmutemperaturesensor.BuildConfig;
 import com.wmutemperaturesensor.R;
 
+// @react-native-community/async-storage
+import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;
+// react-native-android-location-enabler
+import com.heanoria.library.reactnative.locationenabler.RNAndroidLocationEnablerPackage;
 // react-native-ble-plx
 import com.polidea.reactnativeble.BlePackage;
 // react-native-bluetooth-status
 import com.solinor.bluetoothstatus.RNBluetoothManagerPackage;
+// react-native-restart
+import com.avishayil.rnrestart.ReactNativeRestartPackage;
 // react-native-svg
 import com.horcrux.svg.SvgPackage;
 
@@ -52,8 +58,11 @@ public class PackageList {
   public ArrayList<ReactPackage> getPackages() {
     return new ArrayList<>(Arrays.<ReactPackage>asList(
       new MainReactPackage(),
+      new AsyncStoragePackage(),
+      new RNAndroidLocationEnablerPackage(),
       new BlePackage(),
       new RNBluetoothManagerPackage(),
+      new ReactNativeRestartPackage(),
       new SvgPackage()
     ));
   }
