@@ -1,4 +1,4 @@
-import React, { Fragment, Component } from 'react';
+import React, { Fragment, Component } from "react";
 import {
   StyleSheet,
   ScrollView,
@@ -6,23 +6,23 @@ import {
   Text,
   Image,
   Dimensions,
-  ActivityIndicator,
-} from 'react-native';
+  ActivityIndicator
+} from "react-native";
 
-import { Footer, FooterTab } from 'native-base';
-import RNAndroidLocationEnabler from "react-native-android-location-enabler";
-import { VictoryBar, VictoryTheme, VictoryChart } from 'victory-native';
-import Permissions from "react-native-permissions";
-import RNRestart from "react-native-restart";
+import { Footer, FooterTab } from "native-base";
+import RNAndroidLocationEnabler from 'react-native-android-location-enabler';
+import { VictoryBar, VictoryTheme, VictoryChart } from "victory-native";
+import Permissions from 'react-native-permissions';
+import RNRestart from 'react-native-restart';
 
-import { BleManager, ScanMode } from 'react-native-ble-plx';
-import { getDecFrom64 } from './assets/utility/DecFrom64';
-import { throwStatement } from '@babel/types';
+import { BleManager, ScanMode } from "react-native-ble-plx";
+import { getDecFrom64 } from "./assets/utility/DecFrom64";
+import { throwStatement } from "@babel/types";
 
-let DegreeComponent = require('./components/DegreeComponent');
+let DegreeComponent = require("./components/DegreeComponent");
 
 const adcCelciusScalar = 0.0078125;
-const safeSenseServiceID = '0000fff6-0000-1000-8000-00805f9b34fb';
+const safeSenseServiceID = "0000fff6-0000-1000-8000-00805f9b34fb";
 let ScanOptions = { scanMode: ScanMode.LowLatency };
 
 let deviceList = new Map(); //holder for all device
@@ -32,8 +32,8 @@ export default class Main extends Component {
     super();
     this.state = {
       permissionState: false,
-      bluetoothState: '',
-      orientation: '',
+      bluetoothState: "",
+      orientation: "",
       deviceLIST: [],
       device: {
         name: null,
@@ -42,8 +42,8 @@ export default class Main extends Component {
         adcValue: null,
         decimalVal: null,
         celciusVal: null,
-        farenheitVal: null
-      },
+        farenheitVal: null,
+      }
     };
     this.requestPermissions();
     this.manager = new BleManager();
@@ -51,13 +51,13 @@ export default class Main extends Component {
 
   async requestPermissions() {
     try {
-      Permissions.request("location").then(response => {
+      Permissions.request('location').then(response => {
         this.setState({ permissionState: true });
       });
 
       RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
         interval: 10000,
-        fastInterval: 5000,
+        fastInterval: 5000
       }).then(data => {});
     } catch (error) {
       console.warn(error);
@@ -67,24 +67,27 @@ export default class Main extends Component {
   componentDidMount() {
     this.getOrientation();
     this.manager.enable();
-    Dimensions.addEventListener('change', () => {
+    Dimensions.addEventListener("change", () => {
       this.getOrientation();
     });
     const subscription = this.manager.onStateChange(state => {
-      if (state === 'PoweredOn') {
+      if (state === "PoweredOn") {
+        this.setState({ bluetoothState: true });
         this.scanObserverValues();
       }
-      if (state === 'PoweredOff') {
+      if (state === "PoweredOff") {
+        this.setState({ bluetoothState: false });
+        console.log('bluetooth off');
       }
     }, true);
   }
 
   getOrientation = () => {
     if (this.refs.rootView) {
-      if (Dimensions.get('window').width < Dimensions.get('window').height) {
-        this.setState({ orientation: 'portrait' });
+      if (Dimensions.get("window").width < Dimensions.get("window").height) {
+        this.setState({ orientation: "portrait" });
       } else {
-        this.setState({ orientation: 'landscape' });
+        this.setState({ orientation: "landscape" });
       }
     }
   };
@@ -103,8 +106,6 @@ export default class Main extends Component {
           console.log(error.message);
           return;
         }
-
-        //TODO: update program so we can handle multiple device instances/ graph multiple etc.
 
         try {
           //add device to the device map with id as key, device object as value
@@ -134,9 +135,9 @@ export default class Main extends Component {
                   rssi: device.rssi,
                   adcValue: rawData,
                   celciusVal: celVal,
-                  farenheitVal: farVal,
-                }
-              ]),
+                  farenheitVal: farVal
+                },
+              ])
             });
           }
 
@@ -149,7 +150,7 @@ export default class Main extends Component {
                   rssi: device.rssi,
                   adcValue: rawData,
                   celciusVal: celVal,
-                  farenheitVal: farVal,
+                  farenheitVal: farVal
                 };
               }
             }
@@ -162,8 +163,8 @@ export default class Main extends Component {
               rssi: device.rssi,
               adcValue: rawData,
               celciusVal: celVal,
-              farenheitVal: farVal
-            },
+              farenheitVal: farVal,
+            }
           });
         } catch (error) {
           console.log(error.message);
@@ -177,10 +178,10 @@ export default class Main extends Component {
 
     let chartHeight;
 
-    if (this.state.orientation === 'portrait') {
-      chartHeight = Dimensions.get('window').height / 2;
+    if (this.state.orientation === "portrait") {
+      chartHeight = Dimensions.get("window").height / 2;
     }
-    if (this.state.orientation === 'landscape') {
+    if (this.state.orientation === "landscape") {
       chartHeight = 300;
     }
 
@@ -189,7 +190,7 @@ export default class Main extends Component {
         <View style={styles.body} key={i}>
           <View style={styles.headerRow}>
             <View style={styles.rowItemBold}>
-              <Text style={{ fontWeight: '700' }}>Device Name</Text>
+              <Text style={{ fontWeight: "700" }}>Device Name</Text>
             </View>
             <View style={styles.rowItemBold}>
               <DegreeComponent
@@ -197,10 +198,10 @@ export default class Main extends Component {
                   width: 6,
                   height: 6,
                   borderRadius: 3,
-                  marginTop: 0
+                  marginTop: 0,
                 }}
               />
-              <Text style={{ fontWeight: '700' }}>C</Text>
+              <Text style={{ fontWeight: "700" }}>C</Text>
             </View>
             <View style={styles.rowItemBold}>
               <DegreeComponent
@@ -208,10 +209,10 @@ export default class Main extends Component {
                   width: 6,
                   height: 6,
                   borderRadius: 3,
-                  marginTop: 0
+                  marginTop: 0,
                 }}
               />
-              <Text style={{ fontWeight: '700' }}>F</Text>
+              <Text style={{ fontWeight: "700" }}>F</Text>
             </View>
           </View>
           <View style={styles.row} key={i}>
@@ -225,7 +226,7 @@ export default class Main extends Component {
                   width: 6,
                   height: 6,
                   borderRadius: 3,
-                  marginTop: 0
+                  marginTop: 0,
                 }}
               />
               <Text>C</Text>
@@ -237,7 +238,7 @@ export default class Main extends Component {
                   width: 6,
                   height: 6,
                   borderRadius: 3,
-                  marginTop: 0
+                  marginTop: 0,
                 }}
               />
               <Text>F</Text>
@@ -246,20 +247,20 @@ export default class Main extends Component {
           <View style={styles.chartContainer} pointerEvents="none">
             <VictoryChart
               height={chartHeight}
-              width={Dimensions.get('window').width * 0.9}
+              width={Dimensions.get("window").width * 0.9}
               domain={{ y: [10.0, 40.0] }}
               theme={VictoryTheme.material}
             >
               <VictoryBar
                 barRatio={1.0}
                 barWidth={150}
-                style={{ data: { fill: '#4FC1E9' } }}
+                style={{ data: { fill: "#4FC1E9" } }}
                 alignment="middle"
                 data={[
                   {
                     x: device.name,
-                    y: Number(device.celciusVal)
-                  }
+                    y: Number(device.celciusVal),
+                  },
                 ]}
                 labels={d => `${d.y}°C`}
               />
@@ -278,11 +279,11 @@ export default class Main extends Component {
           >
             <View style={styles.logos}>
               <Image
-                source={require('./assets/resources/images/Western_Michigan_University_wordmark.svg__300x100.png')}
+                source={require("./assets/resources/images/Western_Michigan_University_wordmark.svg__300x100.png")}
                 style={styles.image}
               />
               <Image
-                source={require('./assets/resources/images/SafeSense_Technologies_Logo_300x100.jpg')}
+                source={require("./assets/resources/images/SafeSense_Technologies_Logo_300x100.jpg")}
                 style={styles.image}
               />
             </View>
@@ -305,22 +306,22 @@ export default class Main extends Component {
           >
             <View style={styles.logos}>
               <Image
-                source={require('./assets/resources/images/Western_Michigan_University_wordmark.svg__300x100.png')}
+                source={require("./assets/resources/images/Western_Michigan_University_wordmark.svg__300x100.png")}
                 style={styles.image}
               />
               <Image
-                source={require('./assets/resources/images/SafeSense_Technologies_Logo_300x100.jpg')}
+                source={require("./assets/resources/images/SafeSense_Technologies_Logo_300x100.jpg")}
                 style={styles.image}
               />
             </View>
             <View style={styles.body}>
-              <Text style={{ alignSelf: 'center' }}>
+              <Text style={{ alignSelf: "center" }}>
                 Searching for devices...
               </Text>
               <ActivityIndicator
                 size="large"
                 color="#0000ff"
-                style={{ alignSelf: 'center', marginTop: 50 }}
+                style={{ alignSelf: "center", marginTop: 50 }}
               />
             </View>
             <Footer>
@@ -341,22 +342,22 @@ export default class Main extends Component {
           >
             <View style={styles.logos}>
               <Image
-                source={require('./assets/resources/images/Western_Michigan_University_wordmark.svg__300x100.png')}
+                source={require("./assets/resources/images/Western_Michigan_University_wordmark.svg__300x100.png")}
                 style={styles.image}
               />
               <Image
-                source={require('./assets/resources/images/SafeSense_Technologies_Logo_300x100.jpg')}
+                source={require("./assets/resources/images/SafeSense_Technologies_Logo_300x100.jpg")}
                 style={styles.image}
               />
             </View>
             <View style={styles.body}>
-              <Text style={{ alignSelf: 'center' }}>
+              <Text style={{ alignSelf: "center" }}>
                 Verifying permissions..
               </Text>
               <ActivityIndicator
                 size="large"
                 color="#0000ff"
-                style={{ alignSelf: 'center', marginTop: 50 }}
+                style={{ alignSelf: "center", marginTop: 50 }}
               />
             </View>
             <Footer>
@@ -373,112 +374,112 @@ export default class Main extends Component {
 
 const styles = StyleSheet.create({
   scrollView: {
-    backgroundColor: '#FFFFFF'
+    backgroundColor: "#FFFFFF",
   },
   body: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'flex-start',
-    flexDirection: 'column',
-    height: '90%'
+    backgroundColor: "#FFFFFF",
+    alignItems: "flex-start",
+    flexDirection: "column",
+    height: "90%",
   },
   logos: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'flex-start',
-    flexDirection: 'row',
+    backgroundColor: "#FFFFFF",
+    alignItems: "flex-start",
+    flexDirection: "row",
     paddingTop: 10,
     paddingBottom: 30,
     borderBottomWidth: 1,
-    borderBottomColor: '#000000'
+    borderBottomColor: "#000000",
   },
   image: {
     flex: 1,
     width: 50,
     height: 50,
-    resizeMode: 'contain'
+    resizeMode: "contain",
   },
   item: {
-    flexDirection: 'column',
+    flexDirection: "column",
     marginBottom: 5,
-    paddingHorizontal: 10
+    paddingHorizontal: 10,
   },
   label: {
-    color: '#CBCBCB',
+    color: "#CBCBCB",
     flex: 1,
     fontSize: 12,
-    position: 'relative',
-    top: 2
+    position: "relative",
+    top: 2,
   },
   bar: {
-    alignSelf: 'center',
+    alignSelf: "center",
     borderRadius: 5,
     height: 8,
-    marginRight: 5
+    marginRight: 5,
   },
   celcius: {
-    backgroundColor: '#F55443'
+    backgroundColor: "#F55443",
   },
   chartContainer: {
-    flexDirection: 'column',
+    flexDirection: "column",
     marginTop: 0,
-    alignItems: 'center'
+    alignItems: "center",
   },
   data: {
     flex: 2,
-    flexDirection: 'row'
+    flexDirection: "row",
   },
   dataNumber: {
-    color: '#CBCBCB',
-    fontSize: 20
+    color: "#CBCBCB",
+    fontSize: 20,
   },
   highlight: {
-    fontWeight: '700'
+    fontWeight: "700",
   },
   headerRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginVertical: 10,
     paddingBottom: 10,
     paddingRight: 15,
     paddingLeft: 15,
     marginBottom: 5,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    fontSize: 10
+    justifyContent: "space-between",
+    alignItems: "center",
+    fontSize: 10,
   },
   row: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginVertical: 5,
     paddingBottom: 5,
     paddingRight: 15,
     paddingLeft: 15,
     marginBottom: 5,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    fontSize: 100
+    justifyContent: "space-between",
+    alignItems: "center",
+    fontSize: 100,
   },
   rowItem: {
     padding: 1,
-    width: '33%',
-    flexDirection: 'row'
+    width: "33%",
+    flexDirection: "row",
   },
   rowItemBold: {
     padding: 1,
-    width: '33%',
-    flexDirection: 'row'
+    width: "33%",
+    flexDirection: "row",
   },
   footerTab: {
     height: 50,
-    width: '100%',
-    position: 'absolute',
-    bottom: 0
+    width: "100%",
+    position: "absolute",
+    bottom: 0,
   },
   footer: {
-    backgroundColor: '#ACF7F7',
+    backgroundColor: "#ACF7F7",
     height: 50,
-    width: '100%',
-    justifyContent: 'center',
-    position: 'absolute',
-    bottom: 0
-  }
+    width: "100%",
+    justifyContent: "center",
+    position: "absolute",
+    bottom: 0,
+  },
 });
