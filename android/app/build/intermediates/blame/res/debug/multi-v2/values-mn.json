@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "/home/kgsh/Desktop/Projects/mobile-applications/WMUTemperatureSensor/android/app/build/intermediates/incremental/mergeDebugResources/merged.dir/values-mn/values-mn.xml",
+            "outputFile": "/home/kyt/Desktop/Apps/WMUTemperatureSensor/android/app/build/intermediates/incremental/mergeDebugResources/merged.dir/values-mn/values-mn.xml",
             "map": [
                 {
-                    "source": "/home/kgsh/.gradle/caches/transforms-2/files-2.1/0c1b28f5c4ef989033efa2446c698350/res/values-mn/values.xml",
+                    "source": "/home/kyt/.gradle/caches/transforms-2/files-2.1/ac5ebf8ad34194b65faf5ba8dd13a910/res/values-mn/values.xml",
                     "from": {
                         "startLines": "4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20",
                         "startColumns": "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",
@@ -21,24 +21,7 @@
                     }
                 },
                 {
-                    "source": "/home/kgsh/.gradle/caches/transforms-2/files-2.1/8c87018f35a99a6b1091cec258c3c817/res/values-mn/values-mn.xml",
-                    "from": {
-                        "startLines": "2",
-                        "startColumns": "4",
-                        "startOffsets": "55",
-                        "endColumns": "100",
-                        "endOffsets": "151"
-                    },
-                    "to": {
-                        "startLines": "48",
-                        "startColumns": "4",
-                        "startOffsets": "5580",
-                        "endColumns": "100",
-                        "endOffsets": "5676"
-                    }
-                },
-                {
-                    "source": "/home/kgsh/.gradle/caches/transforms-2/files-2.1/40101442fc0f0296916fba53c5ca9a2e/res/values-mn/values.xml",
+                    "source": "/home/kyt/.gradle/caches/transforms-2/files-2.1/f4d7bfce970766108b112d9e9121b932/res/values-mn/values.xml",
                     "from": {
                         "startLines": "4",
                         "startColumns": "0",
@@ -55,7 +38,24 @@
                     }
                 },
                 {
-                    "source": "/home/kgsh/.gradle/caches/transforms-2/files-2.1/bc6cabefdac36313237f8994845bb5e1/res/values-mn/values-mn.xml",
+                    "source": "/home/kyt/.gradle/caches/transforms-2/files-2.1/cfd6fdd39d5ae9ea1e9f5a9b2991e72e/res/values-mn/values-mn.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "100",
+                        "endOffsets": "151"
+                    },
+                    "to": {
+                        "startLines": "48",
+                        "startColumns": "4",
+                        "startOffsets": "5580",
+                        "endColumns": "100",
+                        "endOffsets": "5676"
+                    }
+                },
+                {
+                    "source": "/home/kyt/.gradle/caches/transforms-2/files-2.1/acb13b40167c97dde16bf6f737798696/res/values-mn/values-mn.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",

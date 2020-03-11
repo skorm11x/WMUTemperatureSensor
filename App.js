@@ -104,8 +104,6 @@ export default class Main extends Component {
           return;
         }
 
-        //TODO: update program so we can handle multiple device instances/ graph multiple etc.
-
         try {
           //add device to the device map with id as key, device object as value
 

@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "/home/kgsh/Desktop/Projects/mobile-applications/WMUTemperatureSensor/android/app/build/intermediates/incremental/mergeDebugResources/merged.dir/values-large-v4/values-large-v4.xml",
+            "outputFile": "/home/kyt/Desktop/Apps/WMUTemperatureSensor/android/app/build/intermediates/incremental/mergeDebugResources/merged.dir/values-large-v4/values-large-v4.xml",
             "map": [
                 {
-                    "source": "/home/kgsh/.gradle/caches/transforms-2/files-2.1/bc6cabefdac36313237f8994845bb5e1/res/values-large-v4/values-large-v4.xml",
+                    "source": "/home/kyt/.gradle/caches/transforms-2/files-2.1/acb13b40167c97dde16bf6f737798696/res/values-large-v4/values-large-v4.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10",
                         "startColumns": "4,4,4,4,4,4,4,4,4",
